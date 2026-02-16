@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شجرة العائلة - تطبيق احترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c5f2d;
+            --primary-light: #97c680;
+            --primary-dark: #1a3d1b;
+            --accent: #d4af37;
+            --bg-main: #faf9f6;
+            --bg-card: #ffffff;
+            --text-main: #1a1a1a;
+            --text-secondary: #666666;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #faf9f6 0%, #f0ede6 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-title {
+            font-family: 'Amiri', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInDown 0.8s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
+            animation: fadeIn 1s ease 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .controls-panel {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px var(--shadow);
+            border: 1px solid var(--border);
+            animation: scaleIn 0.6s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        label::before {
+            content: '●';
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        input, select {
+            padding: 0.9rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-main);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(44, 95, 45, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input[type="file"] {
+            padding: 0.7rem;
+            cursor: pointer;
+            background: var(--bg-card);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(44, 95, 45, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(44, 95, 45, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            padding-right: 3rem;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            font-size: 1.05rem;
+            background: var(--bg-main);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23666' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 1.2rem center;
+        }
+
+        .tree-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            min-height: 600px;
+            box-shadow: 0 8px 30px var(--shadow);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .tree-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+            padding: 2rem;
+            min-width: fit-content;
+        }
+
+        .generation {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .generation::before {
+            content: '';
+            position: absolute;
+            top: -1.5rem;
+            right: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+        }
+
+        .person-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 220px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            animation: cardAppear 0.5s ease;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .person-card.deceased {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-color: #9e9e9e;
+            opacity: 0.85;
+        }
+
+        .person-card.deceased .person-photo {
+            filter: grayscale(100%);
+            border-color: #9e9e9e;
+        }
+
+        .person-card.deceased:hover .person-photo {
+            filter: grayscale(80%);
+        }
+
+        .deceased-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #757575 0%, #424242 100%);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .person-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 40px var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        .person-card.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+        }
+
+        .person-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--primary-light);
+            box-shadow: 0 4px 15px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .person-card:hover .person-photo {
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+
+        .person-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-family: 'Amiri', serif;
+        }
+
+        .person-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0;
+        }
+
+        .person-relationship {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .add-member-card {
+            background: linear-gradient(135deg, var(--bg-main) 0%, var(--bg-card) 100%);
+            border: 3px dashed var(--primary-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 220px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+        }
+
+        .add-member-card:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #e8f5e9 0%, var(--bg-card) 100%);
+            transform: scale(1.05);
+        }
+
+        .add-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .add-member-card:hover .add-icon {
+            transform: rotate(90deg);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #f8f9fa 100%);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px var(--shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-hover);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Amiri', serif;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.4s ease;
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Amiri', serif;
+            color: var(--primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-main);
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 1rem auto;
+            display: block;
+            border: 4px solid var(--primary-light);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .empty-subtext {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .app-title {
+                font-size: 2rem;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .generation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">🌳 شجرة العائلة</h1>
+            <p class="app-subtitle">تطبيق احترافي لإدارة وعرض شجرة عائلتك بشكل تفاعلي وجميل</p>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- إحصائيات العائلة -->
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-number" id="totalMembers">0</div>
+                <div class="stat-label">إجمالي الأفراد</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalGenerations">0</div>
+                <div class="stat-label">عدد الأجيال</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="maleCount">0</div>
+                <div class="stat-label">الذكور</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="femaleCount">0</div>
+                <div class="stat-label">الإناث</div>
+            </div>
+        </div>
+
+        <!-- شريط البحث -->
+        <div class="search-bar">
+            <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن فرد من العائلة...">
+        </div>
+
+        <!-- لوحة التحكم -->
+        <div class="controls-panel">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="openAddMemberModal()">
+                    ➕ إضافة فرد جديد
+                </button>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    📥 تصدير البيانات
+                </button>
+                <button class="btn btn-secondary" onclick="importData()">
+                    📤 استيراد البيانات
+                </button>
+                <button class="btn btn-secondary" onclick="shareTree()">
+                    🔗 مشاركة الشجرة
+                </button>
+            </div>
+        </div>
+
+        <!-- عرض الشجرة -->
+        <div class="tree-container">
+            <div id="treeView" class="tree-view">
+                <div class="empty-state">
+                    <div class="empty-icon">🌱</div>
+                    <div class="empty-text">ابدأ ببناء شجرة عائلتك</div>
+                    <div class="empty-subtext">أضف أول فرد من عائلتك لتبدأ الرحلة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة فرد -->
+    <div id="addMemberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">إضافة فرد جديد</h2>
+                <button class="close-btn" onclick="closeModal('addMemberModal')">&times;</button>
+            </div>
+            
+            <form id="addMemberForm" onsubmit="addMember(event)">
+                <div class="control-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="memberName" required placeholder="مثال: أحمد محمد">
+                </div>
+
+                <div class="control-group">
+                    <label>النوع</label>
+                    <select id="memberGender" required>
+                        <option value="">اختر النوع</option>
+                        <option value="male">ذكر</option>
+                        <option value="female">أنثى</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>تاريخ الميلاد</label>
+                    <input type="date" id="memberBirthdate">
+                </div>
+
+                <div class="control-group">
+                    <label>الحالة</label>
+                    <select id="memberStatus" onchange="toggleDeathDate()">
+                        <option value="alive">على قيد الحياة</option>
+                        <option value="deceased">متوفى</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="deathDateGroup" style="display: none;">
+                    <label>تاريخ الوفاة</label>
+                    <input type="date" id="memberDeathDate">
+                </div>
+
+                <div class="control-group">
+                    <label>العلاقة</label>
+                    <select id="memberRelation" onchange="updateParentSelector()">
+                        <option value="root">الجد/الجدة الأكبر (الأصل)</option>
+                        <option value="child">ابن/ابنة</option>
+                        <option value="spouse">زوج/زوجة</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="parentSelectorGroup" style="display: none;">
+                    <label>الوالد/الوالدة</label>
+                    <select id="memberParent">
+                        <option value="">اختر الوالد/الوالدة</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>الصورة الشخصية</label>
+                    <input type="file" id="memberPhoto" accept="image/*" onchange="previewPhoto(event)">
+                    <img id="photoPreview" class="photo-preview" style="display: none;">
+                </div>
+
+                <div class="control-group">
+                    <label>معلومات إضافية</label>
+                    <input type="text" id="memberNotes" placeholder="مثال: طبيب، يعيش في الرياض">
+                </div>
+
+                <div class="action-buttons" style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addMemberModal')">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل الفرد -->
+    <div id="memberDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">تفاصيل الفرد</h2>
+                <button class="close-btn" onclick="closeModal('memberDetailsModal')">&times;</button>
+            </div>
+            <div id="memberDetailsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات العائلة
+        let familyData = [];
+        let selectedMember = null;
+
+        // تحميل البيانات من التخزين المحلي
+        window.onload = function() {
+            loadData();
+            renderTree();
+            updateStats();
+        };
+
+        // إظهار/إخفاء حقل تاريخ الوفاة
+        function toggleDeathDate() {
+            const status = document.getElementById('memberStatus').value;
+            const deathDateGroup = document.getElementById('deathDateGroup');
+            
+            if (status === 'deceased') {
+                deathDateGroup.style.display = 'flex';
+            } else {
+                deathDateGroup.style.display = 'none';
+                document.getElementById('memberDeathDate').value = '';
+            }
+        }
+
+        // فتح نافذة إضافة فرد
+        function openAddMemberModal() {
+            document.getElementById('addMemberModal').classList.add('active');
+            updateParentSelector();
+        }
+
+        // إغلاق النافذة
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'addMemberModal') {
+                resetAddForm();
+            }
+        }
+
+        // معاينة الصورة
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // تحديث قائمة الآباء
+        function updateParentSelector() {
+            const relation = document.getElementById('memberRelation').value;
+            const parentGroup = document.getElementById('parentSelectorGroup');
+            const parentSelect = document.getElementById('memberParent');
+
+            if (relation === 'child') {
+                parentGroup.style.display = 'flex';
+                parentSelect.innerHTML = '<option value="">اختر الوالد/الوالدة</option>';
+                familyData.forEach(member => {
+                    parentSelect.innerHTML += `<option value="${member.id}">${member.name}</option>`;
+                });
+            } else {
+                parentGroup.style.display = 'none';
+            }
+        }
+
+        // إضافة فرد جديد
+        function addMember(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('memberName').value;
+            const gender = document.getElementById('memberGender').value;
+            const birthdate = document.getElementById('memberBirthdate').value;
+            const status = document.getElementById('memberStatus').value;
+            const deathDate = document.getElementById('memberDeathDate').value;
+            const relation = document.getElementById('memberRelation').value;
+            const parentId = document.getElementById('memberParent').value;
+            const notes = document.getElementById('memberNotes').value;
+            const photoFile = document.getElementById('memberPhoto').files[0];
+
+            const member = {
+                id: Date.now(),
+                name: name,
+                gender: gender,
+                birthdate: birthdate,
+                age: birthdate ? calculateAge(birthdate, deathDate) : null,
+                status: status,
+                deathDate: status === 'deceased' ? deathDate : null,
+                relation: relation,
+                parentId: parentId || null,
+                notes: notes,
+                photo: null,
+                children: []
+            };
+
+            // معالجة الصورة
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    member.photo = e.target.result;
+                    saveMember(member);
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                saveMember(member);
+            }
+        }
+
+        // حفظ الفرد
+        function saveMember(member) {
+            // إذا كان له والد، أضفه كابن
+            if (member.parentId) {
+                const parent = familyData.find(m => m.id == member.parentId);
+                if (parent) {
+                    parent.children.push(member.id);
+                }
+            }
+
+            familyData.push(member);
+            saveData();
+            renderTree();
+            updateStats();
+            closeModal('addMemberModal');
+            document.getElementById('addMemberForm').reset();
+            document.getElementById('photoPreview').style.display = 'none';
+        }
+
+        // حساب العمر
+        function calculateAge(birthdate, deathDate = null) {
+            const birth = new Date(birthdate);
+            const endDate = deathDate ? new Date(deathDate) : new Date();
+            
+            let age = endDate.getFullYear() - birth.getFullYear();
+            const monthDiff = endDate.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && endDate.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // عرض الشجرة
+        function renderTree() {
+            const treeView = document.getElementById('treeView');
+            
+            if (familyData.length === 0) {
+                treeView.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🌱</div>
+                        <div class="empty-text">ابدأ ببناء شجرة عائلتك</div>
+                        <div class="empty-subtext">أضف أول فرد من عائلتك لتبدأ الرحلة</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // ترتيب الأفراد حسب الأجيال
+            const generations = organizeByGenerations();
+            
+            let html = '';
+            generations.forEach((generation, index) => {
+                html += '<div class="generation">';
+                generation.forEach(member => {
+                    html += createPersonCard(member);
+                });
+                html += `<div class="add-member-card" onclick="openAddMemberModal()">
+                    <div class="add-icon">+</div>
+                    <div>إضافة فرد جديد</div>
+                </div>`;
+                html += '</div>';
+            });
+
+            treeView.innerHTML = html;
+        }
+
+        // تنظيم الأفراد حسب الأجيال
+        function organizeByGenerations() {
+            const generations = [];
+            const roots = familyData.filter(m => !m.parentId || m.relation === 'root');
+            
+            if (roots.length > 0) {
+                generations.push(roots);
+                
+                // البحث عن الأبناء
+                let currentGen = roots;
+                while (currentGen.length > 0) {
+                    const nextGen = [];
+                    currentGen.forEach(parent => {
+                        const children = familyData.filter(m => m.parentId == parent.id);
+                        nextGen.push(...children);
+                    });
+                    if (nextGen.length > 0) {
+                        generations.push(nextGen);
+                    }
+                    currentGen = nextGen;
+                }
+            } else {
+                generations.push(familyData);
+            }
+
+            return generations;
+        }
+
+        // إنشاء بطاقة الفرد
+        function createPersonCard(member) {
+            const photoSrc = member.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=97c680&color=fff&size=200`;
+            const relationText = getRelationText(member.relation);
+            const isDeceased = member.status === 'deceased';
+            const deceasedClass = isDeceased ? 'deceased' : '';
+            
+            let ageText = '';
+            if (member.birthdate) {
+                if (isDeceased && member.deathDate) {
+                    const ageAtDeath = calculateAge(member.birthdate, member.deathDate);
+                    ageText = `<div class="person-info">⚰️ توفي عن عمر ${ageAtDeath} سنة</div>`;
+                } else if (!isDeceased) {
+                    ageText = `<div class="person-info">🎂 ${member.age} سنة</div>`;
+                }
+            }
+            
+            return `
+                <div class="person-card ${deceasedClass}" onclick="showMemberDetails(${member.id})">
+                    <img src="${photoSrc}" alt="${member.name}" class="person-photo">
+                    <div class="person-name">${member.name}</div>
+                    <div class="person-info">⚥ ${member.gender === 'male' ? 'ذكر' : 'أنثى'}</div>
+                    ${ageText}
+                    ${member.notes ? `<div class="person-info">📝 ${member.notes}</div>` : ''}
+                    ${isDeceased ? '<div class="deceased-badge">رحمه الله</div>' : `<div class="person-relationship">${relationText}</div>`}
+                </div>
+            `;
+        }
+
+        // الحصول على نص العلاقة
+        function getRelationText(relation) {
+            const relations = {
+                'root': 'الجد/الجدة',
+                'child': 'ابن/ابنة',
+                'spouse': 'زوج/زوجة'
+            };
+            return relations[relation] || 'فرد';
+        }
+
+        // عرض تفاصيل الفرد
+        function showMemberDetails(memberId) {
+            const member = familyData.find(m => m.id === memberId);
+            if (!member) return;
+
+            const photoSrc = member.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=97c680&color=fff&size=300`;
+            const isDeceased = member.status === 'deceased';
+            
+            let ageInfo = '';
+            if (member.birthdate) {
+                if (isDeceased && member.deathDate) {
+                    const ageAtDeath = calculateAge(member.birthdate, member.deathDate);
+                    ageInfo = `
+                        <p><strong>تاريخ الميلاد:</strong> ${member.birthdate}</p>
+                        <p><strong>تاريخ الوفاة:</strong> ${member.deathDate}</p>
+                        <p><strong>العمر عند الوفاة:</strong> ${ageAtDeath} سنة</p>
+                        <p style="color: #757575; font-weight: 600;">⚰️ رحمه الله</p>
+                    `;
+                } else if (!isDeceased) {
+                    ageInfo = `
+                        <p><strong>تاريخ الميلاد:</strong> ${member.birthdate}</p>
+                        <p><strong>العمر:</strong> ${member.age} سنة</p>
+                    `;
+                } else {
+                    ageInfo = `<p><strong>تاريخ الميلاد:</strong> ${member.birthdate}</p>`;
+                }
+            }
+            
+            const content = `
+                <div style="text-align: center;">
+                    <img src="${photoSrc}" alt="${member.name}" class="photo-preview" style="display: block; ${isDeceased ? 'filter: grayscale(100%);' : ''}">
+                    <h3 style="font-size: 1.8rem; margin: 1rem 0; font-family: 'Amiri', serif;">${member.name}</h3>
+                    <div style="margin: 1.5rem 0; line-height: 2;">
+                        <p><strong>النوع:</strong> ${member.gender === 'male' ? 'ذكر' : 'أنثى'}</p>
+                        ${ageInfo}
+                        <p><strong>العلاقة:</strong> ${getRelationText(member.relation)}</p>
+                        ${member.notes ? `<p><strong>معلومات إضافية:</strong> ${member.notes}</p>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                        <button class="btn btn-primary" onclick="editMember(${member.id})">
+                            ✏️ تعديل
+                        </button>
+                        <button class="btn btn-secondary" style="background: #dc3545; color: white; border: none;" onclick="deleteMember(${member.id})">
+                            🗑️ حذف
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('memberDetailsContent').innerHTML = content;
+            document.getElementById('memberDetailsModal').classList.add('active');
+        }
+
+        // تعديل فرد
+        function editMember(memberId) {
+            const member = familyData.find(m => m.id === memberId);
+            if (!member) return;
+
+            // إغلاق نافذة التفاصيل
+            closeModal('memberDetailsModal');
+
+            // فتح نافذة الإضافة
+            openAddMemberModal();
+
+            // تعبئة البيانات
+            document.getElementById('memberName').value = member.name;
+            document.getElementById('memberGender').value = member.gender;
+            document.getElementById('memberBirthdate').value = member.birthdate || '';
+            document.getElementById('memberStatus').value = member.status || 'alive';
+            document.getElementById('memberRelation').value = member.relation;
+            document.getElementById('memberNotes').value = member.notes || '';
+
+            // عرض/إخفاء حقل تاريخ الوفاة
+            toggleDeathDate();
+            if (member.status === 'deceased' && member.deathDate) {
+                document.getElementById('memberDeathDate').value = member.deathDate;
+            }
+
+            // عرض الصورة الحالية
+            if (member.photo) {
+                const preview = document.getElementById('photoPreview');
+                preview.src = member.photo;
+                preview.style.display = 'block';
+            }
+
+            // تحديث قائمة الآباء
+            updateParentSelector();
+            if (member.parentId) {
+                document.getElementById('memberParent').value = member.parentId;
+            }
+
+            // تغيير زر الحفظ
+            const form = document.getElementById('addMemberForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'تحديث';
+            submitBtn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+
+            // تغيير عنوان النافذة
+            document.querySelector('#addMemberModal .modal-title').textContent = 'تعديل بيانات الفرد';
+
+            // تغيير معالج النموذج
+            form.onsubmit = function(event) {
+                event.preventDefault();
+                updateMember(memberId);
+            };
+        }
+
+        // تحديث بيانات الفرد
+        function updateMember(memberId) {
+            const member = familyData.find(m => m.id === memberId);
+            if (!member) return;
+
+            // إزالة الفرد من أطفال الوالد القديم
+            if (member.parentId) {
+                const oldParent = familyData.find(m => m.id == member.parentId);
+                if (oldParent && oldParent.children) {
+                    oldParent.children = oldParent.children.filter(cid => cid !== memberId);
+                }
+            }
+
+            // تحديث البيانات
+            member.name = document.getElementById('memberName').value;
+            member.gender = document.getElementById('memberGender').value;
+            member.birthdate = document.getElementById('memberBirthdate').value;
+            member.status = document.getElementById('memberStatus').value;
+            member.deathDate = member.status === 'deceased' ? document.getElementById('memberDeathDate').value : null;
+            member.age = member.birthdate ? calculateAge(member.birthdate, member.deathDate) : null;
+            member.relation = document.getElementById('memberRelation').value;
+            member.parentId = document.getElementById('memberParent').value || null;
+            member.notes = document.getElementById('memberNotes').value;
+
+            // إضافة الفرد لأطفال الوالد الجديد
+            if (member.parentId) {
+                const newParent = familyData.find(m => m.id == member.parentId);
+                if (newParent) {
+                    if (!newParent.children) newParent.children = [];
+                    if (!newParent.children.includes(memberId)) {
+                        newParent.children.push(memberId);
+                    }
+                }
+            }
+
+            // تحديث الصورة إذا تم اختيار صورة جديدة
+            const photoFile = document.getElementById('memberPhoto').files[0];
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    member.photo = e.target.result;
+                    saveAndRefresh();
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                saveAndRefresh();
+            }
+
+            function saveAndRefresh() {
+                saveData();
+                renderTree();
+                updateStats();
+                resetAddForm();
+                closeModal('addMemberModal');
+            }
+        }
+
+        // إعادة تعيين نموذج الإضافة
+        function resetAddForm() {
+            const form = document.getElementById('addMemberForm');
+            form.reset();
+            document.getElementById('photoPreview').style.display = 'none';
+            
+            // إعادة زر الحفظ للوضع الأصلي
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'حفظ';
+            submitBtn.style.background = '';
+
+            // إعادة عنوان النافذة
+            document.querySelector('#addMemberModal .modal-title').textContent = 'إضافة فرد جديد';
+
+            // إعادة معالج النموذج
+            form.onsubmit = addMember;
+        }
+
+        // حذف فرد
+        function deleteMember(memberId) {
+            if (confirm('هل أنت متأكد من حذف هذا الفرد؟')) {
+                familyData = familyData.filter(m => m.id !== memberId);
+                // حذف الإشارة من الوالدين
+                familyData.forEach(m => {
+                    if (m.children) {
+                        m.children = m.children.filter(cid => cid !== memberId);
+                    }
+                });
+                saveData();
+                renderTree();
+                updateStats();
+                closeModal('memberDetailsModal');
+            }
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            document.getElementById('totalMembers').textContent = familyData.length;
+            
+            const generations = organizeByGenerations();
+            document.getElementById('totalGenerations').textContent = generations.length;
+            
+            const males = familyData.filter(m => m.gender === 'male').length;
+            document.getElementById('maleCount').textContent = males;
+            
+            const females = familyData.filter(m => m.gender === 'female').length;
+            document.getElementById('femaleCount').textContent = females;
+        }
+
+        // البحث
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.person-card');
+            
+            cards.forEach(card => {
+                const name = card.querySelector('.person-name').textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                    card.style.animation = 'cardAppear 0.5s ease';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // حفظ البيانات
+        function saveData() {
+            localStorage.setItem('familyTreeData', JSON.stringify(familyData));
+        }
+
+        // تحميل البيانات
+        function loadData() {
+            const saved = localStorage.getItem('familyTreeData');
+            if (saved) {
+                familyData = JSON.parse(saved);
+            }
+        }
+
+        // تصدير البيانات
+        function exportData() {
+            const dataStr = JSON.stringify(familyData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'family-tree-' + new Date().getTime() + '.json';
+            link.click();
+            alert('تم تصدير البيانات بنجاح! 📥');
+        }
+
+        // استيراد البيانات
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        familyData = imported;
+                        saveData();
+                        renderTree();
+                        updateStats();
+                        alert('تم استيراد البيانات بنجاح! 📤');
+                    } catch (error) {
+                        alert('خطأ في قراءة الملف!');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // مشاركة الشجرة
+        function shareTree() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'شجرة العائلة',
+                    text: 'شاهد شجرة عائلتي!',
+                    url: url
+                });
+            } else {
+                navigator.clipboard.writeText(url);
+                alert('تم نسخ الرابط! يمكنك مشاركته الآن 🔗');
+            }
+        }
+
+        // إغلاق النافذة عند النقر خارجها
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        };
+    </script>
+</body>
+</html>
