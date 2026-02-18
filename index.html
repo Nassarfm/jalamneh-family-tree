@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>شجرة العائلة - تطبيق احترافي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --primary: #2c5f2d;
@@ -606,7 +611,7 @@
 <body>
     <header class="app-header">
         <div class="header-content">
-            <h1 class="app-title">🌳 شجرة العائلة</h1>
+            <h1 class="app-title">🌳 شجرة عائلة جلامنة</h1>
             <p class="app-subtitle">تطبيق احترافي لإدارة وعرض شجرة عائلتك بشكل تفاعلي وجميل</p>
         </div>
     </header>
@@ -755,16 +760,119 @@
     </div>
 
     <script>
+        // إعدادات Firebase - شجرة عائلة جلامنة
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_QKkm6KL-3Az3uhbUPqRgq-KyBquYXQw",
+            authDomain: "jalamneh-familytree.firebaseapp.com",
+            databaseURL: "https://jalamneh-familytree-default-rtdb.firebaseio.com",
+            projectId: "jalamneh-familytree",
+            storageBucket: "jalamneh-familytree.firebasestorage.app",
+            messagingSenderId: "126723321099",
+            appId: "1:126723321099:web:3ade45fbd0977dccc9060e",
+            measurementId: "G-1B9YSN8TNG"
+        };
+
+        // تهيئة Firebase
+        let database = null;
+        let isFirebaseEnabled = false;
+
+        try {
+            // التحقق من صحة الإعدادات
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                isFirebaseEnabled = true;
+                console.log("✅ Firebase متصل بنجاح!");
+            } else {
+                console.log("⚠️ وضع التخزين المحلي - Firebase غير مفعّل");
+            }
+        } catch (error) {
+            console.error("❌ خطأ في الاتصال بـ Firebase:", error);
+            isFirebaseEnabled = false;
+        }
+
         // بيانات العائلة
         let familyData = [];
         let selectedMember = null;
 
         // تحميل البيانات من التخزين المحلي
         window.onload = function() {
-            loadData();
+            if (isFirebaseEnabled) {
+                loadDataFromFirebase();
+            } else {
+                loadDataFromLocal();
+            }
+            showConnectionStatus();
+        };
+
+        // عرض حالة الاتصال
+        function showConnectionStatus() {
+            const header = document.querySelector('.app-subtitle');
+            if (isFirebaseEnabled) {
+                header.innerHTML = 'تطبيق احترافي لإدارة وعرض شجرة عائلتك بشكل تفاعلي وجميل • <span style="color: #4caf50;">🟢 متصل بالإنترنت</span>';
+            } else {
+                header.innerHTML = 'تطبيق احترافي لإدارة وعرض شجرة عائلتك بشكل تفاعلي وجميل • <span style="color: #ff9800;">🟡 وضع محلي</span>';
+            }
+        }
+
+        // تحميل من Firebase
+        function loadDataFromFirebase() {
+            const familyRef = database.ref('familyTree');
+            
+            familyRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    familyData = Object.values(data);
+                } else {
+                    familyData = [];
+                }
+                renderTree();
+                updateStats();
+            });
+        }
+
+        // تحميل من التخزين المحلي
+        function loadDataFromLocal() {
+            const saved = localStorage.getItem('familyTreeData');
+            if (saved) {
+                familyData = JSON.parse(saved);
+            }
             renderTree();
             updateStats();
-        };
+        }
+
+        // حفظ البيانات
+        function saveData() {
+            if (isFirebaseEnabled) {
+                saveDataToFirebase();
+            } else {
+                saveDataToLocal();
+            }
+        }
+
+        // حفظ إلى Firebase
+        function saveDataToFirebase() {
+            const familyRef = database.ref('familyTree');
+            const dataObject = {};
+            
+            familyData.forEach(member => {
+                dataObject[member.id] = member;
+            });
+            
+            familyRef.set(dataObject)
+                .then(() => {
+                    console.log("✅ تم الحفظ في Firebase");
+                })
+                .catch((error) => {
+                    console.error("❌ خطأ في الحفظ:", error);
+                    alert("حدث خطأ في حفظ البيانات!");
+                });
+        }
+
+        // حفظ إلى التخزين المحلي
+        function saveDataToLocal() {
+            localStorage.setItem('familyTreeData', JSON.stringify(familyData));
+        }
 
         // إظهار/إخفاء حقل تاريخ الوفاة
         function toggleDeathDate() {
@@ -1227,19 +1335,6 @@
                 }
             });
         });
-
-        // حفظ البيانات
-        function saveData() {
-            localStorage.setItem('familyTreeData', JSON.stringify(familyData));
-        }
-
-        // تحميل البيانات
-        function loadData() {
-            const saved = localStorage.getItem('familyTreeData');
-            if (saved) {
-                familyData = JSON.parse(saved);
-            }
-        }
 
         // تصدير البيانات
         function exportData() {
