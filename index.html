@@ -1128,6 +1128,7 @@
         // إضافة فرد جديد
         function addMember(event) {
             event.preventDefault();
+            console.log("🔵 بدأ إضافة فرد جديد...");
 
             const name = document.getElementById('memberName').value;
             const gender = document.getElementById('memberGender').value;
@@ -1139,13 +1140,20 @@
             const notes = document.getElementById('memberNotes').value;
             const photoFile = document.getElementById('memberPhoto').files[0];
 
+            console.log("📝 البيانات:", { name, gender, relation });
+
+            if (!name || !gender) {
+                alert("❌ الرجاء ملء الاسم والنوع!");
+                return;
+            }
+
             const member = {
                 id: Date.now(),
                 name: name,
                 gender: gender,
                 birthdate: birthdate,
                 age: birthdate ? calculateAge(birthdate, deathDate) : null,
-                status: status,
+                status: status || 'alive',
                 deathDate: status === 'deceased' ? deathDate : null,
                 relation: relation,
                 parentId: parentId || null,
@@ -1153,6 +1161,8 @@
                 photo: null,
                 children: []
             };
+
+            console.log("✅ تم إنشاء كائن العضو:", member);
 
             // معالجة الصورة
             if (photoFile) {
@@ -1169,21 +1179,29 @@
 
         // حفظ الفرد
         function saveMember(member) {
+            console.log("💾 حفظ الفرد:", member);
+            
             // إذا كان له والد، أضفه كابن
             if (member.parentId) {
                 const parent = familyData.find(m => m.id == member.parentId);
                 if (parent) {
+                    if (!parent.children) parent.children = [];
                     parent.children.push(member.id);
+                    console.log("✅ تمت إضافة الفرد كابن لـ:", parent.name);
                 }
             }
 
             familyData.push(member);
+            console.log("✅ تمت إضافة الفرد للبيانات. العدد الكلي:", familyData.length);
+            
             saveData();
             renderTree();
             updateStats();
             closeModal('addMemberModal');
             document.getElementById('addMemberForm').reset();
             document.getElementById('photoPreview').style.display = 'none';
+            
+            console.log("🎉 اكتملت العملية بنجاح!");
         }
 
         // حساب العمر
