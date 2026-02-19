@@ -269,7 +269,7 @@
             min-height: 600px;
             box-shadow: 0 8px 30px var(--shadow);
             border: 1px solid var(--border);
-            overflow-x: auto;
+            overflow: auto;
             position: relative;
         }
 
@@ -277,9 +277,134 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3rem;
+            gap: 2rem;
             padding: 2rem;
             min-width: fit-content;
+        }
+
+        .tree-hierarchical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+            width: 100%;
+        }
+
+        .tree-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .person-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .children-container {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            position: relative;
+            padding-top: 2.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            transition: all 0.5s ease;
+            overflow: hidden;
+        }
+
+        .children-container.collapsed {
+            max-height: 0;
+            margin-top: 0;
+            padding-top: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .children-container.expanded {
+            max-height: 10000px;
+            opacity: 1;
+        }
+
+        /* خط عمودي من الوالد للأولاد */
+        .children-container.expanded::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 2.5rem;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        /* خط أفقي يربط الأولاد */
+        .children-container.expanded::after {
+            content: '';
+            position: absolute;
+            top: 2.5rem;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+            z-index: 0;
+        }
+
+        .toggle-children-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(44, 95, 45, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 10;
+            line-height: 1;
+        }
+
+        .toggle-children-btn:hover {
+            transform: scale(1.2) rotate(90deg);
+            box-shadow: 0 6px 25px rgba(44, 95, 45, 0.6);
+        }
+
+        .toggle-children-btn:active {
+            transform: scale(1.05) rotate(90deg);
+        }
+
+        .has-children {
+            border-color: var(--primary);
+            box-shadow: 0 6px 25px rgba(44, 95, 45, 0.2);
+            border-width: 3px;
+        }
+
+        .has-children:hover {
+            box-shadow: 0 10px 35px rgba(44, 95, 45, 0.3);
         }
 
         .generation {
@@ -1073,7 +1198,7 @@
             return age;
         }
 
-        // عرض الشجرة
+        // عرض الشجرة بشكل هرمي
         function renderTree() {
             const treeView = document.getElementById('treeView');
             
@@ -1088,59 +1213,86 @@
                 return;
             }
 
-            // ترتيب الأفراد حسب الأجيال
-            const generations = organizeByGenerations();
+            // البحث عن الجذور (الأجداد)
+            const roots = familyData.filter(m => !m.parentId || m.relation === 'root');
             
-            let html = '';
-            generations.forEach((generation, index) => {
-                const generationNum = index + 1;
-                const isExpanded = localStorage.getItem(`gen_${generationNum}_expanded`) !== 'false';
-                
-                html += `
-                    <div class="generation-container">
-                        <div class="generation-header">
-                            <button class="toggle-generation-btn" onclick="toggleGeneration(${generationNum})" id="toggleBtn_${generationNum}">
-                                ${isExpanded ? '−' : '+'}
-                            </button>
-                            <div class="generation-title">الجيل ${generationNum} (${generation.length} ${generation.length === 1 ? 'فرد' : generation.length === 2 ? 'فردان' : 'أفراد'})</div>
-                        </div>
-                        <div class="generation-content ${isExpanded ? 'expanded' : 'collapsed'}" id="gen_${generationNum}">
-                            <div class="generation">
-                `;
-                
-                generation.forEach(member => {
-                    html += createPersonCard(member);
+            let html = '<div class="tree-hierarchical">';
+            
+            if (roots.length > 0) {
+                roots.forEach(root => {
+                    html += renderPersonNode(root);
                 });
-                
-                html += `
-                                <div class="add-member-card" onclick="openAddMemberModal()">
-                                    <div class="add-icon">+</div>
-                                    <div>إضافة فرد جديد</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+            } else {
+                // إذا ما في جذور واضحة، اعرض الكل
+                familyData.forEach(member => {
+                    html += renderPersonNode(member);
+                });
+            }
+            
+            html += `
+                <div class="add-member-card" onclick="openAddMemberModal()" style="margin-top: 2rem;">
+                    <div class="add-icon">+</div>
+                    <div>إضافة فرد جديد</div>
+                </div>
+            `;
+            html += '</div>';
 
             treeView.innerHTML = html;
         }
 
-        // طي/فتح الجيل
-        function toggleGeneration(genNum) {
-            const genContent = document.getElementById(`gen_${genNum}`);
-            const toggleBtn = document.getElementById(`toggleBtn_${genNum}`);
+        // رسم عقدة الشخص مع أولاده
+        function renderPersonNode(member) {
+            const children = familyData.filter(m => m.parentId == member.id);
+            const hasChildren = children.length > 0;
+            const isExpanded = localStorage.getItem(`member_${member.id}_expanded`) !== 'false';
             
-            if (genContent.classList.contains('expanded')) {
-                genContent.classList.remove('expanded');
-                genContent.classList.add('collapsed');
+            let html = '<div class="tree-node">';
+            
+            // البطاقة الشخصية
+            html += '<div class="person-card-wrapper">';
+            html += createPersonCard(member, hasChildren);
+            
+            // زر الطي/الفتح إذا كان له أولاد
+            if (hasChildren) {
+                html += `
+                    <button class="toggle-children-btn" onclick="toggleChildren(${member.id})" id="toggleBtn_${member.id}">
+                        ${isExpanded ? '−' : '+'}
+                    </button>
+                `;
+            }
+            
+            html += '</div>';
+            
+            // عرض الأولاد
+            if (hasChildren) {
+                html += `<div class="children-container ${isExpanded ? 'expanded' : 'collapsed'}" id="children_${member.id}">`;
+                children.forEach(child => {
+                    html += renderPersonNode(child);
+                });
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // طي/فتح الأولاد
+        function toggleChildren(memberId) {
+            const childrenContainer = document.getElementById(`children_${memberId}`);
+            const toggleBtn = document.getElementById(`toggleBtn_${memberId}`);
+            
+            if (!childrenContainer || !toggleBtn) return;
+            
+            if (childrenContainer.classList.contains('expanded')) {
+                childrenContainer.classList.remove('expanded');
+                childrenContainer.classList.add('collapsed');
                 toggleBtn.textContent = '+';
-                localStorage.setItem(`gen_${genNum}_expanded`, 'false');
+                localStorage.setItem(`member_${memberId}_expanded`, 'false');
             } else {
-                genContent.classList.add('expanded');
-                genContent.classList.remove('collapsed');
+                childrenContainer.classList.add('expanded');
+                childrenContainer.classList.remove('collapsed');
                 toggleBtn.textContent = '−';
-                localStorage.setItem(`gen_${genNum}_expanded`, 'true');
+                localStorage.setItem(`member_${memberId}_expanded`, 'true');
             }
         }
 
@@ -1173,11 +1325,12 @@
         }
 
         // إنشاء بطاقة الفرد
-        function createPersonCard(member) {
+        function createPersonCard(member, hasChildren = false) {
             const photoSrc = member.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=97c680&color=fff&size=200`;
             const relationText = getRelationText(member.relation);
             const isDeceased = member.status === 'deceased';
             const deceasedClass = isDeceased ? 'deceased' : '';
+            const childrenClass = hasChildren ? 'has-children' : '';
             
             let ageText = '';
             if (member.birthdate) {
@@ -1190,7 +1343,7 @@
             }
             
             return `
-                <div class="person-card ${deceasedClass}" onclick="showMemberDetails(${member.id})">
+                <div class="person-card ${deceasedClass} ${childrenClass}" onclick="showMemberDetails(${member.id})">
                     <img src="${photoSrc}" alt="${member.name}" class="person-photo">
                     <div class="person-name">${member.name}</div>
                     <div class="person-info">⚥ ${member.gender === 'male' ? 'ذكر' : 'أنثى'}</div>
