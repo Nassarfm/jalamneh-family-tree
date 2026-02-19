@@ -495,9 +495,9 @@
         .person-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border: 2px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            width: 220px;
+            border-radius: 12px;
+            padding: 1rem;
+            width: 180px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -555,12 +555,12 @@
         }
 
         .person-photo {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0 auto 1rem;
-            border: 4px solid var(--primary-light);
+            margin: 0 auto 0.7rem;
+            border: 3px solid var(--primary-light);
             box-shadow: 0 4px 15px var(--shadow);
             transition: all 0.3s ease;
         }
@@ -571,28 +571,29 @@
         }
 
         .person-name {
-            font-size: 1.2rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             font-family: 'Amiri', serif;
+            line-height: 1.3;
         }
 
         .person-info {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
-            margin: 0.25rem 0;
+            margin: 0.2rem 0;
         }
 
         .person-relationship {
             display: inline-block;
             background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
             color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-top: 0.5rem;
+            margin-top: 0.4rem;
         }
 
         .add-member-card {
@@ -799,6 +800,71 @@
                 font-size: 2rem;
             }
         }
+
+        /* تنسيقات الطباعة */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .app-header {
+                background: white !important;
+                color: var(--primary) !important;
+                box-shadow: none;
+                border-bottom: 3px solid var(--primary);
+                page-break-after: avoid;
+            }
+
+            .app-header::before {
+                display: none;
+            }
+
+            .app-subtitle {
+                color: var(--text-secondary) !important;
+            }
+
+            .stats-panel,
+            .search-bar,
+            .controls-panel,
+            .add-member-card,
+            .toggle-children-btn {
+                display: none !important;
+            }
+
+            .tree-container {
+                box-shadow: none;
+                border: none;
+                padding: 1rem;
+                background: white;
+                page-break-inside: avoid;
+            }
+
+            .person-card {
+                page-break-inside: avoid;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+                border: 2px solid var(--primary) !important;
+                background: white !important;
+            }
+
+            .person-card:hover {
+                transform: none !important;
+            }
+
+            .children-container {
+                page-break-inside: avoid;
+            }
+
+            .children-container.collapsed {
+                display: flex !important;
+                max-height: none !important;
+                opacity: 1 !important;
+            }
+
+            /* إظهار كل الأولاد المطويين عند الطباعة */
+            .tree-node {
+                page-break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body>
@@ -840,6 +906,9 @@
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="openAddMemberModal()">
                     ➕ إضافة فرد جديد
+                </button>
+                <button class="btn btn-secondary" onclick="printTree()">
+                    🖨️ طباعة الشجرة
                 </button>
                 <button class="btn btn-secondary" onclick="exportData()">
                     📥 تصدير البيانات
@@ -1661,6 +1730,55 @@
             } else {
                 navigator.clipboard.writeText(url);
                 alert('تم نسخ الرابط! يمكنك مشاركته الآن 🔗');
+            }
+        }
+
+        // طباعة الشجرة
+        function printTree() {
+            // فتح كل الأقسام المطوية قبل الطباعة
+            const collapsedSections = document.querySelectorAll('.children-container.collapsed');
+            const previousStates = [];
+            
+            // حفظ الحالات الحالية
+            collapsedSections.forEach((section, index) => {
+                previousStates.push({
+                    element: section,
+                    wasCollapsed: true
+                });
+                section.classList.remove('collapsed');
+                section.classList.add('expanded');
+            });
+
+            // إخفاء أزرار الطي/الفتح مؤقتاً
+            const toggleButtons = document.querySelectorAll('.toggle-children-btn');
+            toggleButtons.forEach(btn => btn.style.display = 'none');
+
+            // تأكيد الطباعة
+            if (confirm('هل تريد طباعة شجرة العائلة كاملة؟\n\nنصيحة: اختر Layout عرضي (Landscape) للحصول على أفضل نتيجة.')) {
+                // تأخير صغير للسماح للمتصفح بتطبيق التغييرات
+                setTimeout(() => {
+                    window.print();
+                    
+                    // إعادة الحالات السابقة بعد الطباعة
+                    setTimeout(() => {
+                        previousStates.forEach(state => {
+                            if (state.wasCollapsed) {
+                                state.element.classList.remove('expanded');
+                                state.element.classList.add('collapsed');
+                            }
+                        });
+                        toggleButtons.forEach(btn => btn.style.display = 'flex');
+                    }, 500);
+                }, 300);
+            } else {
+                // إعادة الحالات إذا ألغى المستخدم
+                previousStates.forEach(state => {
+                    if (state.wasCollapsed) {
+                        state.element.classList.remove('expanded');
+                        state.element.classList.add('collapsed');
+                    }
+                });
+                toggleButtons.forEach(btn => btn.style.display = 'flex');
             }
         }
 
