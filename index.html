@@ -331,16 +331,6 @@
             overflow: hidden;
         }
 
-        /* العرض العمودي للأولاد الكثيرين */
-        .children-container.vertical-mode {
-            flex-direction: column !important;
-            align-items: center;
-            gap: 1rem;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
         .children-container.collapsed {
             max-height: 0;
             margin-top: 0;
@@ -375,15 +365,6 @@
             height: 3px;
             background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
             z-index: 0;
-        }
-
-        /* خط عمودي للعرض العمودي */
-        .children-container.vertical-mode.expanded::before {
-            height: calc(100% - 2.5rem);
-        }
-
-        .children-container.vertical-mode.expanded::after {
-            display: none;
         }
 
         .toggle-children-btn {
@@ -792,6 +773,15 @@
                 <button class="btn btn-primary" onclick="openAddMemberModal()">
                     ➕ إضافة فرد جديد
                 </button>
+                <button class="btn btn-secondary" onclick="zoomIn()">
+                    🔍+ تكبير
+                </button>
+                <button class="btn btn-secondary" onclick="zoomOut()">
+                    🔍− تصغير
+                </button>
+                <button class="btn btn-secondary" onclick="resetZoom()">
+                    ⟲ إعادة تعيين
+                </button>
                 <button class="btn btn-secondary" onclick="printTree()">
                     🖨️ طباعة الشجرة
                 </button>
@@ -1197,9 +1187,6 @@
             const hasChildren = children.length > 0;
             const isExpanded = localStorage.getItem(`member_${member.id}_expanded`) !== 'false';
             
-            // 🧠 النظام الذكي: أكثر من 3 أولاد = عرض عمودي
-            const verticalMode = children.length > 3 ? 'vertical-mode' : '';
-            
             let html = '<div class="tree-node">';
             
             if (spouse && !renderedSpouses.has(spouse.id)) {
@@ -1242,7 +1229,7 @@
             }
             
             if (hasChildren) {
-                html += `<div class="children-container ${verticalMode} ${isExpanded ? 'expanded' : 'collapsed'}" id="children_${member.id}">`;
+                html += `<div class="children-container ${isExpanded ? 'expanded' : 'collapsed'}" id="children_${member.id}">`;
                 children.forEach(child => {
                     html += renderPersonNode(child, renderedSpouses);
                 });
@@ -1673,6 +1660,46 @@
                 event.target.classList.remove('active');
             }
         };
+
+        // وظائف Zoom
+        let currentZoom = 100;
+
+        function zoomIn() {
+            if (currentZoom < 150) {
+                currentZoom += 10;
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > 50) {
+                currentZoom -= 10;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const treeView = document.getElementById('treeView');
+            treeView.style.transform = `scale(${currentZoom / 100})`;
+            treeView.style.transformOrigin = 'top center';
+            
+            // حفظ مستوى Zoom
+            localStorage.setItem('treeZoomLevel', currentZoom);
+        }
+
+        // تحميل مستوى Zoom المحفوظ
+        window.addEventListener('load', function() {
+            const savedZoom = localStorage.getItem('treeZoomLevel');
+            if (savedZoom) {
+                currentZoom = parseInt(savedZoom);
+                applyZoom();
+            }
+        });
     </script>
 </body>
 </html>
